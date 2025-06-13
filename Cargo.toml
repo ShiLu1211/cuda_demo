@@ -1,0 +1,17 @@
+[package]
+name = "cuda_demo"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[dependencies]
+cust = "0.3"
+anyhow = "1.0"
+jni = "0.21.1"
+rand = "0.9"
+once_cell = "1.21"
+rayon = "1"
+
+[lib]
+name = "cuda_demo"
+crate-type = ["cdylib"]
