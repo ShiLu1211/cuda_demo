@@ -1,7 +1,7 @@
 #include <curand_kernel.h>
 
 extern "C" __global__
-void monte_carlo_kernel(float* results, int num_paths,
+void monte_carlo(float* results, int num_paths,
     float S0, float K, float r, float sigma, float T) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < num_paths) {

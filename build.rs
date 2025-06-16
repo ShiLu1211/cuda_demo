@@ -6,8 +6,8 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let status = Command::new("nvcc")
-        .args(["-ptx", "cuda/monte_carlo.cu", "-o"])
-        .arg(out_dir.join("monte_carlo.ptx"))
+        .args(["-ptx", "cuda/computex.cu", "-o"])
+        .arg(out_dir.join("computex.ptx"))
         .status()
         .expect("Failed to compile CUDA kernel");
 

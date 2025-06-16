@@ -9,14 +9,22 @@ use jni::{
 use rayon::prelude::*;
 
 static CUDA_CTX: OnceLock<Context> = OnceLock::new();
+static PTX: &str = include_str!(concat!(env!("OUT_DIR"), "/computex.ptx"));
+static MODULE: OnceLock<Module> = OnceLock::new();
 
 #[unsafe(no_mangle)]
-pub extern "system" fn Java_com_erayt_cuda_GpuInterface_quickInit(_env: JNIEnv, _: JObject) {
+pub extern "system" fn Java_com_erayt_cuda_GpuInterface_cudaInit(_env: JNIEnv, _: JObject) {
     CUDA_CTX.get_or_init(|| {
         cust::init(CudaFlags::empty()).expect("Failed to initialize CUDA");
         let device = Device::get_device(0).expect("No CUDA device found");
         Context::new(device).expect("Failed to create CUDA context")
     });
+
+    module_get_or_init();
+}
+
+fn module_get_or_init() -> &'static Module {
+    MODULE.get_or_init(|| Module::from_ptx(PTX, &[]).expect("Failed to load ptx from file"))
 }
 
 #[unsafe(no_mangle)]
@@ -49,16 +57,15 @@ fn monte_carlo(
     if CUDA_CTX.get().is_none() {
         return Err(anyhow::anyhow!("CUDA context not initialized"));
     }
+    
+    let module = module_get_or_init();
 
     let mut results = vec![0.0f32; num_paths];
     let d_results = results.as_slice().as_dbuf()?;
 
-    let ptx = include_str!(concat!(env!("OUT_DIR"), "/monte_carlo.ptx"));
-    let module = Module::from_ptx(ptx, &[])?;
-
     let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
 
-    let kernel = module.get_function("monte_carlo_kernel")?;
+    let kernel = module.get_function("monte_carlo")?;
 
     let (_, block_size) = kernel.suggested_launch_configuration(0, 0.into())?;
 
