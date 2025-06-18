@@ -1,1 +1,3 @@
-pub mod cuda_wrappers;
+mod cuda_wrappers;
+
+pub use cuda_wrappers::*;

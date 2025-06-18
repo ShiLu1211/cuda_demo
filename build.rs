@@ -17,6 +17,4 @@ fn main() {
                 .unwrap();
         }
     }
-
-    println!("cargo:rerun-if-changed=kernel.cu");
 }

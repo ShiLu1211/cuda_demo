@@ -31,9 +31,10 @@ pub extern "system" fn Java_com_erayt_cuda_GpuInterface_run<'a>(
         .get_array_length(&jargs)
         .expect("Invalid input array length");
     let mut args = vec![0.0f32; length as usize];
-
     env.get_float_array_region(&jargs, 0, &mut args)
         .expect("Failed to get float array from Java");
+
+    // println!("Received args (algo_id = {}): {:?}", algo_id, args.len());
 
     let result = match algo::dispatch(algo_id, &args) {
         Ok(result) => result,
