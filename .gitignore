@@ -4,4 +4,4 @@ Cargo.lock
 
 *.ptx
 *.so
-dependeny-*
+dependency-*
