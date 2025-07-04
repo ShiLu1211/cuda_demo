@@ -38,7 +38,7 @@ pub extern "system" fn Java_com_erayt_cuda_GpuInterface_run<'a>(
 
     let result = match algo::dispatch(algo_id, &args) {
         Ok(result) => result,
-        Err(e) => panic!("Algorithm dispatch failed: {}", e),
+        Err(e) => panic!("Algorithm dispatch failed: {e}"),
     };
 
     let out = env
