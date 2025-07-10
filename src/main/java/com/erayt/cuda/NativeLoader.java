@@ -1,5 +1,8 @@
 package com.erayt.cuda;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -7,10 +10,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public final class NativeLoader {
 
-public class NativeLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeLoader.class);
     private static final String TMP_DIR = System.getProperty("java.io.tmpdir");
     private static final String OS_NAME = System.getProperty("os.name");
@@ -18,7 +19,7 @@ public class NativeLoader {
             : (OS_NAME.toLowerCase().contains("mac os") ? ".dylib" : ".so");
 
     private static final String SHORT_NAME = "cuda_demo";
-    private static final String LIB_PREFIX = "lib" + SHORT_NAME;
+    private static final String LIB_PREFIX = (OS_NAME.toLowerCase().contains("win")) ? SHORT_NAME : "lib" + SHORT_NAME;
     private static final String LIB_RESOURCE = LIB_PREFIX + EXT;
     private volatile boolean loaded = false;
 
@@ -53,7 +54,7 @@ public class NativeLoader {
         }
     }
 
-    // 先读环境变量，找不到再从jar里面加载
+    // 先读环境变量，再读jar同目录，找不到再从jar里面加载
     public void load() {
         if (loaded) {
             return;
@@ -68,24 +69,72 @@ public class NativeLoader {
                 return;
             } catch (UnsatisfiedLinkError error) {
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("jar同目录下没有, {}", LIB_RESOURCE);
+                    LOGGER.warn("环境变量中没有, {}", LIB_RESOURCE);
                 }
             }
+
+            // === 尝试加载 JAR 所在目录下的动态库 ===
+            try {
+                String jarDir = getJarDirectory();
+                Path localLib = Paths.get(jarDir, LIB_RESOURCE);
+                if (Files.exists(localLib)) {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("加载 JAR 同目录下的 {}", LIB_RESOURCE);
+                    }
+                    System.load(localLib.toAbsolutePath().toString());
+                    loaded = true;
+                    return;
+                } else {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("JAR 同目录下未找到 {}", LIB_RESOURCE);
+                    }
+                }
+            } catch (Exception e) {
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("尝试加载 JAR 同目录下的 {} 失败", LIB_RESOURCE, e);
+                }
+            }
+
+            // === 最后回退到 JAR 内部资源释放 ===
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("加载jar里面的{}", LIB_RESOURCE);
+                LOGGER.info("加载 JAR 包中的 {}", LIB_RESOURCE);
             }
             try {
                 String libPath = unleashJarLib();
                 if (!libPath.isEmpty()) {
-                    // print();("libPath: " + libPath);
                     System.load(libPath);
                     loaded = true;
                 }
             } catch (Exception e) {
                 if (LOGGER.isWarnEnabled()) {
-                    LOGGER.warn("加载jar里面的{}失败", LIB_RESOURCE, e);
+                    LOGGER.warn("加载 JAR 包中的 {} 失败", LIB_RESOURCE, e);
                 }
             }
+        }
+    }
+
+    private String getJarDirectory() {
+        try {
+            Path jarPath = Paths.get(NativeLoader.class
+                    .getProtectionDomain()
+                    .getCodeSource()
+                    .getLocation()
+                    .toURI());
+
+            Path parent = jarPath.getParent();
+            if (parent != null) {
+                return parent.toAbsolutePath().toString();
+            } else {
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("JAR 文件没有上级目录: {}", jarPath);
+                }
+                return "";
+            }
+        } catch (Exception e) {
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("获取 JAR 所在目录失败", e);
+            }
+            return "";
         }
     }
 
