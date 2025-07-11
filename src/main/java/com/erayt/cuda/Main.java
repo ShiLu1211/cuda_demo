@@ -1,6 +1,7 @@
 package com.erayt.cuda;
 
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import com.erayt.cuda.algo.MonteAlgo;
 import com.erayt.cuda.algo.VarAlgo;
@@ -22,6 +23,7 @@ public class Main {
     }
 
     static void monto() {
+        System.out.println("Monte Carlo");
         // === Monte Carlo 模拟
         int numPaths = 10_000_000;
         float S0 = 100f;
@@ -34,7 +36,7 @@ public class Main {
         long start = System.currentTimeMillis();
         float price = europeanCallPrice(numPaths, S0, K, r, sigma, T);
         long end = System.currentTimeMillis();
-        System.out.println("Time: " + (end - start));
+        System.out.println("CPU Time: " + (end - start) + " ms");
         System.out.println("CPU Monte Carlo price: " + price);
 
         // === GPU Monte Carlo
@@ -42,11 +44,14 @@ public class Main {
         MonteAlgo algo = MonteAlgo.of(numPaths, S0, K, r, sigma, T);
         float[] discounted = GpuInterface.run(algo.getId(), algo.toArgs());
         end = System.currentTimeMillis();
-        System.out.println("Time: " + (end - start));
+        System.out.println("GPU Time: " + (end - start) + " ms");
         System.out.println("GPU Monte Carlo price: " + discounted[0]);
+
+        System.out.println();
     }
 
     static void var() {
+        System.out.println("Var");
         // === Var
         int n = 1_000_000;
         float[] returns = new float[n];
@@ -64,7 +69,7 @@ public class Main {
         long start = System.currentTimeMillis();
         float javaVaR = computeVaR(returns, confidence, holding);
         long end = System.currentTimeMillis();
-        System.out.println("Time: " + (end - start));
+        System.out.println("CPU Time: " + (end - start) + " ms");
         System.out.println("Java VaR = " + javaVaR);
 
         // === GPU Var
@@ -72,12 +77,16 @@ public class Main {
         VarAlgo varAlgo = VarAlgo.of(n, returns, confidence, holding);
         float[] var = GpuInterface.run(varAlgo.getId(), varAlgo.toArgs());
         end = System.currentTimeMillis();
-        System.out.println("Time: " + (end - start));
+        System.out.println("GPU Time: " + (end - start) + " ms");
         System.out.println("GPU VaR = " + var[0]);
+
+        System.out.println();
     }
 
     static void volSurface() {
+        System.out.println("Vol Surface");
         int N = 1_000_000;
+        int count = 5;
         float[] S = new float[N];
         float[] K = new float[N];
         float[] T = new float[N];
@@ -108,7 +117,20 @@ public class Main {
         System.out.println("CPU total time: " + (end - start) + " ms");
 
         // 打印前几个结果
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < count; i++) {
+            System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)\n",
+                    S[i], K[i], T[i], cpuVol[i], trueSigma);
+        }
+
+        start = System.currentTimeMillis();
+        IntStream.range(0, N).parallel().forEach(i -> {
+            cpuVol[i] = impliedVol(S[i], K[i], T[i], r[i], P[i]);
+        });
+        end = System.currentTimeMillis();
+        System.out.println("CPU Parallel total time: " + (end - start) + " ms");
+
+        // 打印前几个结果
+        for (int i = 0; i < count; i++) {
             System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)\n",
                     S[i], K[i], T[i], cpuVol[i], trueSigma);
         }
@@ -120,7 +142,7 @@ public class Main {
         end = System.currentTimeMillis();
         System.out.println("GPU total time: " + (end - start) + " ms");
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < count; i++) {
             System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)\n",
                     S[i], K[i], T[i], gpuVol[i], trueSigma);
         }
