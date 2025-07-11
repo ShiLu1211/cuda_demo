@@ -1,5 +1,6 @@
 package com.erayt.cuda;
 
+import java.security.SecureRandom;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -11,6 +12,8 @@ public class Main {
     static {
         NativeLoader.sharedInstance().load();
     }
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final Random RAND = new Random();
 
     public static void main(String[] args) {
         GpuInterface.cudaInit();
@@ -55,11 +58,10 @@ public class Main {
         // === Var
         int n = 1_000_000;
         double[] returns = new double[n];
-        Random rand = new Random(42);
 
         for (int i = 0; i < n; i++) {
             // 正态分布模拟历史收益（均值0.001，标准差0.02）
-            returns[i] = 0.001 + rand.nextGaussian() * 0.02;
+            returns[i] = 0.001 + SECURE_RANDOM.nextGaussian() * 0.02;
         }
 
         double confidence = 0.99;
@@ -93,11 +95,10 @@ public class Main {
         double[] r = new double[N];
         double[] P = new double[N];
 
-        Random rand = new Random(42);
         for (int i = 0; i < N; i++) {
-            S[i] = 90 + rand.nextDouble() * 20; // spot price: 90 ~ 110
-            K[i] = 90 + rand.nextDouble() * 20; // strike price: 90 ~ 110
-            T[i] = 0.1 + rand.nextDouble(); // maturity: 0.1 ~ 1.1 years
+            S[i] = 90 + SECURE_RANDOM.nextDouble() * 20; // spot price: 90 ~ 110
+            K[i] = 90 + SECURE_RANDOM.nextDouble() * 20; // strike price: 90 ~ 110
+            T[i] = 0.1 + SECURE_RANDOM.nextDouble(); // maturity: 0.1 ~ 1.1 years
             r[i] = 0.01; // interest rate
         }
 
@@ -118,7 +119,7 @@ public class Main {
 
         // 打印前几个结果
         for (int i = 0; i < count; i++) {
-            System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)\n",
+            System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)%n",
                     S[i], K[i], T[i], cpuVol[i], trueSigma);
         }
 
@@ -131,7 +132,7 @@ public class Main {
 
         // 打印前几个结果
         for (int i = 0; i < count; i++) {
-            System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)\n",
+            System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)%n",
                     S[i], K[i], T[i], cpuVol[i], trueSigma);
         }
 
@@ -143,7 +144,7 @@ public class Main {
         System.out.println("GPU total time: " + (end - start) + " ms");
 
         for (int i = 0; i < count; i++) {
-            System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)\n",
+            System.out.printf("S=%.2f K=%.2f T=%.2f -> IV=%.4f (true=%.4f)%n",
                     S[i], K[i], T[i], gpuVol[i], trueSigma);
         }
 
@@ -156,12 +157,11 @@ public class Main {
             double r,
             double sigma,
             double t) {
-        Random rand = new Random();
         double sumPayoff = 0.0;
 
         for (int i = 0; i < numPaths; i++) {
             // 生成一个标准正态分布随机数 Z
-            double z = rand.nextGaussian();
+            double z = RAND.nextGaussian();
 
             // 计算终止价格 S_T
             double st = s0 * Math.exp((r - 0.5 * sigma * sigma) * t + sigma * Math.sqrt(t) * z);
@@ -181,9 +181,8 @@ public class Main {
     static double computeVaR(double[] returns, double confidence, double holding) {
         int n = returns.length;
         double[] losses = new double[n];
-        Random rand = new Random();
 
-        double Z = rand.nextGaussian();
+        double Z = SECURE_RANDOM.nextGaussian();
 
         for (int i = 0; i < n; i++) {
             losses[i] = holding - returns[i] * (1 + Z * 0.01);
