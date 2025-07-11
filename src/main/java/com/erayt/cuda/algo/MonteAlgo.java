@@ -4,9 +4,9 @@ import com.erayt.cuda.GpuAlgorithm;
 
 public class MonteAlgo implements GpuAlgorithm {
     public int numPaths;
-    public float S0, K, r, sigma, T;
+    public double S0, K, r, sigma, T;
 
-    public static MonteAlgo of(int numPaths, float S0, float K, float r, float sigma, float T) {
+    public static MonteAlgo of(int numPaths, double S0, double K, double r, double sigma, double T) {
         MonteAlgo algo = new MonteAlgo();
         algo.numPaths = numPaths;
         algo.S0 = S0;
@@ -23,8 +23,8 @@ public class MonteAlgo implements GpuAlgorithm {
     }
 
     @Override
-    public float[] toArgs() {
-        return new float[] {
+    public double[] toArgs() {
+        return new double[] {
                 numPaths, S0, K, r, sigma, T };
     }
 }

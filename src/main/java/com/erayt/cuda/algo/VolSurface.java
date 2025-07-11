@@ -4,9 +4,9 @@ import com.erayt.cuda.GpuAlgorithm;
 
 public class VolSurface implements GpuAlgorithm {
     int n;
-    float[] S, K, T, r, P;
+    double[] S, K, T, r, P;
 
-    public static VolSurface of(int n, float[] S, float[] K, float[] T, float[] r, float[] P) {
+    public static VolSurface of(int n, double[] S, double[] K, double[] T, double[] r, double[] P) {
         VolSurface volSurface = new VolSurface();
         volSurface.n = n;
         volSurface.S = S;
@@ -23,9 +23,9 @@ public class VolSurface implements GpuAlgorithm {
     }
 
     @Override
-    public float[] toArgs() {
+    public double[] toArgs() {
         int totalLen = 1 + 5 * n; // n + S K T r P
-        float[] args = new float[totalLen];
+        double[] args = new double[totalLen];
         args[0] = n;
 
         System.arraycopy(S, 0, args, 1, n);

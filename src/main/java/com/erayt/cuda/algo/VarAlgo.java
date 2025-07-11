@@ -4,10 +4,10 @@ import com.erayt.cuda.GpuAlgorithm;
 
 public class VarAlgo implements GpuAlgorithm {
     int num;
-    float[] returns;
-    float confidence, holding;
+    double[] returns;
+    double confidence, holding;
 
-    public static VarAlgo of(int num, float[] returns, float confidence, float holding) {
+    public static VarAlgo of(int num, double[] returns, double confidence, double holding) {
         VarAlgo algo = new VarAlgo();
         algo.num = num;
         algo.returns = returns;
@@ -22,9 +22,9 @@ public class VarAlgo implements GpuAlgorithm {
     }
 
     @Override
-    public float[] toArgs() {
-        float[] args = new float[1 + returns.length + 2];
-        args[0] = (float) num;
+    public double[] toArgs() {
+        double[] args = new double[1 + returns.length + 2];
+        args[0] = (double) num;
         System.arraycopy(returns, 0, args, 1, returns.length);
         args[1 + returns.length] = confidence;
         args[2 + returns.length] = holding;
