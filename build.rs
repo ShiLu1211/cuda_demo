@@ -11,7 +11,7 @@ fn main() {
         if path.extension().unwrap() == "cu" {
             let ptx_out = out_dir.join(path.with_extension("ptx").file_name().unwrap());
             Command::new("nvcc")
-                .args(["-ptx", path.to_str().unwrap(), "-o"])
+                .args(["-ptx", "-O3", path.to_str().unwrap(), "-o"])
                 .arg(ptx_out)
                 .status()
                 .unwrap();

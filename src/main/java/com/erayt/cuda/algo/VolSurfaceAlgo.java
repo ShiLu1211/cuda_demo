@@ -2,12 +2,12 @@ package com.erayt.cuda.algo;
 
 import com.erayt.cuda.GpuAlgorithm;
 
-public class VolSurface implements GpuAlgorithm {
+public class VolSurfaceAlgo implements GpuAlgorithm {
     int n;
     double[] S, K, T, r, P;
 
-    public static VolSurface of(int n, double[] S, double[] K, double[] T, double[] r, double[] P) {
-        VolSurface volSurface = new VolSurface();
+    public static VolSurfaceAlgo of(int n, double[] S, double[] K, double[] T, double[] r, double[] P) {
+        VolSurfaceAlgo volSurface = new VolSurfaceAlgo();
         volSurface.n = n;
         volSurface.S = S;
         volSurface.K = K;

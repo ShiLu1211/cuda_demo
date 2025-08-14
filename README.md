@@ -2,8 +2,8 @@
 
 
 ``` bash
-cargo build
-cp target/debug/libcuda_demo.so src/main/resources
+cargo build -r
+cp target/release/libcuda_demo.so src/main/resources
 
 mvn package
 java -jar target/cuda_demo-1.0.0-SNAPSHOT.jar
