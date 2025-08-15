@@ -51,7 +51,7 @@ fn generate_random_matrix_gpu(
     Ok(h_random_matrix)
 }
 
-pub fn generate_random_matrix_parallel(rows: usize, cols: usize) -> anyhow::Result<Vec<f64>> {
+fn generate_random_matrix_parallel(rows: usize, cols: usize) -> anyhow::Result<Vec<f64>> {
     let normal = Normal::new(0.0, 1.0)?;
 
     // 用并行 map 构建每条路径的数据

@@ -23,6 +23,14 @@ public class BSAlgo implements GpuAlgorithm {
         return 5;
     }
 
+    public int getId2() {
+        return 6;
+    }
+
+    public double[] toArgs2() {
+        return new double[] { S0, r, q, v, t};
+    }
+
     @Override
     public double[] toArgs() {
         int paths = randMatrix.length;

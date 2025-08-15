@@ -32,6 +32,8 @@ public class RandMatrix {
         System.out.println("CPU Time: " + (end - start) + " ms");
         System.out.println("Java Rand = " + matrix.length + " x " + matrix[0].length);
 
+        System.out.println("====================");
+
         // === CPU rust
         start = System.currentTimeMillis();
         result = GpuInterface.runCpu(rand_matrix.getId(), rand_matrix.toArgs());
@@ -42,8 +44,10 @@ public class RandMatrix {
             System.arraycopy(result, i * num_steps, matrix[i], 0, num_steps);
         }
         end = System.currentTimeMillis();
-        System.out.println("GPU Time: " + (end - start) + " ms");
-        System.out.println("GPU Rnad = " + matrix.length + " x " + matrix[0].length);
+        System.out.println("CPU Rust Time: " + (end - start) + " ms");
+        System.out.println("GPU Rand = " + matrix.length + " x " + matrix[0].length);
+
+        System.out.println("====================");
 
         // === GPU
         start = System.currentTimeMillis();
@@ -56,7 +60,7 @@ public class RandMatrix {
         }
         end = System.currentTimeMillis();
         System.out.println("GPU Time: " + (end - start) + " ms");
-        System.out.println("GPU Rnad = " + matrix.length + " x " + matrix[0].length);
+        System.out.println("GPU Rand = " + matrix.length + " x " + matrix[0].length);
 
         System.out.println("====================");
 
@@ -77,12 +81,53 @@ public class RandMatrix {
         }
         end = System.currentTimeMillis();
         System.out.println("GPU Time: " + (end - start) + " ms");
-        System.out.println("GPU Rnad = " + matrix.length + " x " + matrix[0].length);
+        System.out.println("GPU Simulate = " + matrix.length + " x " + matrix[0].length);
 
-        for (int i = 0; i < num_steps; i++) {
-            System.out.print(matrix[0][i] + " ");
+        // for (int i = 0; i < num_steps; i++) {
+        // System.out.print(matrix[0][i] + " ");
+        // }
+        // System.out.println();
+
+        System.out.println("====================");
+
+        double[] args = bs.toArgs2();
+        double[] newArgs = new double[args.length + 3];
+
+        // 先拷贝原数据
+        System.arraycopy(args, 0, newArgs, 0, args.length);
+
+        // 追加三个值
+        newArgs[args.length] = num_paths;
+        newArgs[args.length + 1] = num_steps;
+        newArgs[args.length + 2] = seed;
+
+        start = System.currentTimeMillis();
+        
+        result = GpuInterface.runDouble(bs.getId2(), newArgs);
+
+        matrix = new double[num_paths][num_steps];
+
+        for (int i = 0; i < num_paths; i++) {
+            System.arraycopy(result, i * num_steps, matrix[i], 0, num_steps);
         }
-        System.out.println();
+        end = System.currentTimeMillis();
+        System.out.println("GPU Time: " + (end - start) + " ms");
+        System.out.println("GPU Rand and Simulate = " + matrix.length + " x " + matrix[0].length);
+
+        System.out.println("====================");
+
+        start = System.currentTimeMillis();
+        
+        result = GpuInterface.runCpu(bs.getId2(), newArgs);
+
+        matrix = new double[num_paths][num_steps];
+
+        for (int i = 0; i < num_paths; i++) {
+            System.arraycopy(result, i * num_steps, matrix[i], 0, num_steps);
+        }
+        end = System.currentTimeMillis();
+        System.out.println("CPU Rust Time: " + (end - start) + " ms");
+        System.out.println("CPU Rand and Simulate = " + matrix.length + " x " + matrix[0].length);
     }
 
     static double[][] randMatrixJava(int num_paths, int num_steps, int seed) {
